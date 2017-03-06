@@ -54,7 +54,7 @@ try:
     
     # Aquí vamos a leer la clave
     try:
-        archivo = open(clave, 'rb') # Abrimos el archivo con la clave
+        archivo = open(clave, 'r') # Abrimos el archivo con la clave
     except:
         print('El archivo con la clave no existe')
     code = archivo.read()
@@ -62,7 +62,7 @@ try:
     archivo.close()
     # Terminamos de leer la clave. Se guardó en 'code'
     if(tipo == 'cesar'):
-        instancia = Cesar(int.from_bytes(code, byteorder='big')) # Instancia para cifrar o descifrar
+        instancia = Cesar(int(code)) # Instancia para cifrar o descifrar
         if(modo == 'c'):
             instancia.cifra_archivo(archiv_ent)
         elif(modo == 'd'):
