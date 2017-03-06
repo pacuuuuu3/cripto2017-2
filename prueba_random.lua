@@ -3,7 +3,8 @@
 -- El generador de números aleatorios está en la biblioteca Math del lenguaje.
 
 -- Observaciones: 
--- La probabilidad de los números se aproxima más a 6/(pi)^2 cuando el intervalo-- (y el número de posibles números) es pequeño. En cuanto aumenta, la probabilidad disminuye
+-- La probabilidad de los números se aproxima más a 6/(pi)^2 cuando el intervalo
+-- (y el número de posibles números) es pequeño. En cuanto aumenta, la probabilidad disminuye
 ----------------------------------------------------------------------------
 
 -- calcula la probabilidad de que dos números aleatorios sean coprimos
