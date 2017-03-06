@@ -1,14 +1,15 @@
 # Contiene varios métodos de cifrado.
 import sys
 
-
 # César
 class Cesar:
     
     # Construye un objeto César a partir de una clave
     def __init__(self, clave):
+        if clave < 0:
+            raise ValueError('La clave debe estar entre 0 y 255')
         self.clave = clave
-
+        
     # Cifra un conjunto de bytes
     def cifra(self, texto):
         nueva_cadena = [] # Aquí vamos a guardar los bytes cifados
@@ -28,13 +29,22 @@ class Cesar:
         archivo.close() # Ya no necesitamos el archivo
         cif = self.cifra(texto) # Ciframos el texto
         nombre_salida =  nombre_archivo.split(".")[0] # Nombrar salida
-        nombre_salida += '.cifrado'
+        if self.clave >= 0:
+            nombre_salida += '.cifrado'
+        else:
+            nombre_salida += '.descifrado'
         escritura = open(nombre_salida, 'wb') # Abrimos la salida
         escritura.write(cif)
         escritura.close()
 
-    
+    # Descifra un archivo
+    def descifra_archivo(self, nombre_archivo):
+        self.clave *= -1 # Descifrar es cifrar con "menos" la clave
+        self.cifra_archivo(nombre_archivo)
+        
 # Función principal del programa
+
+mensaje_error = 'Para correr el programa: python cifrado.py [c|d] [cesar|afin|mezclado|vigenere] archivoClave archivoEntrada' # Para mensajes de error
 
 try:
     modo = sys.argv[1] # Se lee el modo de uso
@@ -48,13 +58,18 @@ try:
     except:
         print('El archivo con la clave no existe')
     code = archivo.read()
+    
     archivo.close()
     # Terminamos de leer la clave. Se guardó en 'code'
     if(tipo == 'cesar'):
         instancia = Cesar(int.from_bytes(code, byteorder='big')) # Instancia para cifrar o descifrar
         if(modo == 'c'):
             instancia.cifra_archivo(archiv_ent)
+        elif(modo == 'd'):
+            instancia.descifra_archivo(archiv_ent)
+        else:
+            print(mensaje_error)
 except:
-    print("Para correr el programa: python cifrado.py [c|d] [cesar|afin|mezclado|vigenere] archivoClave archivoEntrada") 
+    print(mensaje_error) 
             
         
