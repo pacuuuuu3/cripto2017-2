@@ -107,7 +107,7 @@ class Afin:
             archivo = open(nombre_archivo, 'rb')
         except:
             print('El archivo a descifrar no existe')
-        texto = archivo.read() # Bytes a cifrar
+        texto = archivo.read() # Bytes a descifrar
         archivo.close() # Ya no necesitamos el archivo
         cif = self.descifra(texto) # Desciframos el texto
         nombre_salida =  nombre_archivo.split(".")[0] # Nombrar salida
@@ -129,8 +129,8 @@ class Mezclado:
             raise ValueError('El tamaño del alfabeto y los carácteres a sustituir no coinciden')
         self.alfabeto = alfabeto
         self.clave = clave
-
-
+        
+ 
         
     def cifra(self, texto):
         cifrado = [] # guarda el texto cifrado 
@@ -168,6 +168,72 @@ class Mezclado:
         self.clave = prov
         self.cifra_archivo(nombre_archivo, '.descifrado')
 
+
+class Vigenere:
+
+    # Crea el objeto a partir de una cadena de cifrado
+    def __init__(self, clave):
+        self.clave = clave        
+
+    # Cifra un conjunto de bytes
+    def cifra(self, texto):
+        nueva_cadena = [] # Aquí vamos a guardar los bytes cifrados
+        i = 0 # Apuntador a la letra actual de la clave
+        for byte in texto: 
+            byte += self.clave[i]
+            byte %= 256
+            nueva_cadena.append(bytes([byte]))
+            i += 1
+            i %= len(self.clave)
+        return b''.join(nueva_cadena)
+
+    # Cifra un conjunto de bytes
+    def descifra(self, texto):
+        nueva_cadena = [] # Aquí vamos a guardar los bytes descifrados
+        i = 0 # Apuntador a la letra actual de la clave
+        for byte in texto: 
+            byte -= self.clave[i]
+            byte %= 256
+            nueva_cadena.append(bytes([byte]))
+            i += 1
+            i %= len(self.clave)
+        return b''.join(nueva_cadena)        
+
+
+    # Cifra un archivo.
+    # La cadena extension indica si estamos cifrando o descrifrando.
+    def cifra_archivo(self, nombre_archivo, extension = '.cifrado'):
+        try:
+            archivo = open(nombre_archivo, 'rb')
+        except:
+            print('El archivo a cifrar no existe')
+        texto = archivo.read() # Bytes a cifrar
+        archivo.close() # Ya no necesitamos el archivo
+        cif = self.cifra(texto) # Ciframos el texto
+        nombre_salida =  nombre_archivo.split(".")[0] # Nombrar salida
+        nombre_salida += extension
+        escritura = open(nombre_salida, 'wb') # Abrimos la salida
+        escritura.write(cif)
+        escritura.close()
+
+    # Descifra un archivo
+    def descifra_archivo(self, nombre_archivo):
+        try:
+            archivo = open(nombre_archivo, 'rb')
+        except:
+            print('El archivo a descifrar no existe')
+        texto = archivo.read() # Bytes a descifrar
+        archivo.close() # Ya no necesitamos el archivo
+        cif = self.descifra(texto) # Desciframos el texto
+        nombre_salida =  nombre_archivo.split(".")[0] # Nombrar salida
+        nombre_salida += '.descifrado'
+        escritura = open(nombre_salida, 'wb') # Abrimos la salida
+        escritura.write(cif)
+        escritura.close()
+
+
+
+
     
 mensaje_error = 'Para correr el programa: python cifrado.py [c|d] [cesar|afin|mezclado|vigenere] archivoClave archivoEntrada' # Para mensajes de error
 
@@ -189,6 +255,7 @@ if(tipo == 'cesar'):
         archivo = open(clave, 'r') # Abrimos el archivo con la clave
     except:
         print('El archivo con la clave no existe')
+        sys.exit()
 
     code = archivo.read() # La clave
     archivo.close()
@@ -208,7 +275,8 @@ if(tipo == 'afin'):
         archivo = open(clave, 'r') # Abrimos el archivo con la clave
     except:
         print('El archivo con la clave no existe')
-
+        sys.exit()
+        
     code = archivo.readlines() # Las claves
     archivo.close()
     instancia = Afin(int(code[0]), int(code[1])) # Instancia para cifrar o descifrar
@@ -229,7 +297,8 @@ if (tipo == 'mezclado'):
         archivo = open(clave, 'rb') # Abrimos el archivo con la clave
     except:
         print('El archivo con la clave no existe')
-
+        sys.exit()
+        
     # lee ambas lineas del archivo y asigna los valores en dos variables
     claves = archivo.readlines()
     archivo.close()
@@ -239,4 +308,23 @@ if (tipo == 'mezclado'):
     elif(modo == 'd'):
         instancia.descifra_archivo(archiv_ent)    
 
+# Cifrado y descifrado con el alfabeto mezclado
+if (tipo == 'vigenere'):
+
+    # Aquí vamos a leer la clave
+    try:
+        archivo = open(clave, 'rb') # Abrimos el archivo con la clave
+    except:
+        print('El archivo con la clave no existe')
+        sys.exit()
+        
+    clave = archivo.read() # Clave para el algoritmo
+    archivo.close() # Ya no necesitamos el archivo
+    instancia = Vigenere(clave) # Instancia de Vigenere    
+    if(modo == 'c'):
+       instancia.cifra_archivo(archiv_ent)
+    elif(modo == 'd'):
+        instancia.descifra_archivo(archiv_ent)    
+
+        
 archivo.close() # Creo que esto va aquí           
