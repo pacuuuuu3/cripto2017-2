@@ -1,5 +1,6 @@
 from Crypto.Cipher import AES
 import os
+import re
 
 # XOR de bytes. Copiada de Stack Overflow. Créditos al usuario delnan
 def bxor(b1, b2): # use xor for bytes
@@ -18,7 +19,26 @@ def padding(mensaje):
     while len(mensaje) % 16 != 0:
         mensaje += b'\x00'
     return mensaje
-    
+
+'''
+Checa si el mensaje tiene padding
+mensaje - El mensaje a checar
+'''
+def padded(mensaje):
+    regexp = re.compile(b'\x01(\x00)*$')
+    if regexp.search(mensaje):
+        return True
+    return False
+
+'''
+Quita el padding de una cadena
+mensaje - La cadena sobre la que quitaremos el padding
+'''
+def quita_padding(mensaje):
+    mensaje_nuevo = re.sub(b'\x01(\x00)*$', b'', mensaje) # Mensaje a regresar
+    return mensaje_nuevo
+
+
 ''' 
 Utilizando la función de AES en ECB, encripta en CBC
 mensaje - El mensaje a encriptar
@@ -59,12 +79,17 @@ def descifra_aes_cbc(mensaje, llave):
         mensaje_claro += bloque_claro
         anterior = bloque
         i += 16
-    return mensaje_claro
+    return quita_padding(mensaje_claro)
          
-        
+#PRUEBAS        
 iv = os.urandom(16) # Vector de inicialización
 mensaje = b'hola'
 llave = b'Sixteen byte key'
+print(padded(mensaje))
+print(padded(padding(mensaje)))
+print(quita_padding(padding(mensaje)))
 print(encripta_aes_cbc(mensaje,llave, iv)) 
 print(iv + AES.new(llave, AES.MODE_CBC, iv).encrypt(padding(mensaje)))
 print(descifra_aes_cbc(encripta_aes_cbc(mensaje, llave, iv), llave))
+mensaje = b'\x01x00hola'
+print(quita_padding(mensaje))
