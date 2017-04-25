@@ -1,6 +1,10 @@
 from Crypto.Cipher import AES
 import os
 import re
+import sys
+
+#Mensaje de error para cuando el usuario use mal la línea de comandos
+MENSAJE_ERROR = "Para correr el programa: python aes.py [c|d] [cbc|ofb] nombre_archivo archivo_clave"
 
 # XOR de bytes. Copiada de Stack Overflow. Créditos al usuario delnan
 def bxor(b1, b2): # use xor for bytes
@@ -121,32 +125,50 @@ def descifra_aes_ofb(mensaje, llave):
         i += 16
     return quita_padding(mensaje_claro)
 
+# Función principal del programa
+try:
+    modo = sys.argv[1] # Modo de uso
+    modo_aes = sys.argv[2] # Modo para AES
+    nombre_archivo = sys.argv[3] # Nombre del archivo con el mensaje
+    nombre_clave = sys.argv[4] # Archivo con la clave
+    archivo_mensaje = open(nombre_archivo, 'rb') # Abrimos el archivo con el mensaje
+    archivo_clave = open(nombre_clave, 'rb') # Abrimos el archivo con la clave
+except:
+    print(MENSAJE_ERROR)
 
+mensaje = archivo_mensaje.read() # El mensaje a cifrar/descifrar
+archivo_mensaje.close()
+clave = archivo_clave.read() # Clave
+clave = clave[:16] # Agarro nomás los primeros 16 bytes de la clave
+archivo_clave.close()
+
+if modo == 'c':
+    escritura = open('cifrado.aes', 'wb')
+    if modo_aes == 'cbc':
+        escribir = encripta_aes_cbc(mensaje, clave, os.urandom(16))
+    elif modo_aes == 'ofb':
+        escribir = encripta_aes_ofb(mensaje, clave, os.urandom(16))
+    else:
+        escritura.close()
+        print(MENSAJE_ERROR)
+        sys.exit(-1)
+        
+elif modo == 'd':
+    escritura = open('descifrado.aes', 'wb')
+    if modo_aes == 'cbc':
+        escribir = descifra_aes_cbc(mensaje, clave)
+    elif modo_aes == 'ofb':
+        escribir = descifra_aes_ofb(mensaje, clave)
+    else:
+        escritura.close()
+        print(MENSAJE_ERROR)
+        sys.exit(-1)
+else:
+    escritura.close()
+    print(MENSAJE_ERROR)
+    sys.exit(-1)
     
-#PRUEBAS        
-iv = os.urandom(16) # Vector de inicialización
-mensaje = b'hola'
-llave = b'Sixteen byte key'
-print(padded(mensaje))
-print(padded(padding(mensaje)))
-print(quita_padding(padding(mensaje)))
+escritura.write(escribir)
+escritura.close()
 
-# PRUEBA DE CBC 
-print("Prueba CBC")
-print(encripta_aes_cbc(mensaje,llave, iv))
-print(iv + AES.new(llave, AES.MODE_CBC, iv).encrypt(padding(mensaje)))
-print(descifra_aes_cbc(encripta_aes_cbc(mensaje, llave, iv), llave))
 
-print('\n')
-
-# PRUEBA DE OFB
-print("Prueba OFB")
-print(encripta_aes_ofb(mensaje, llave, iv))
-print(iv + AES.new(llave, AES.MODE_OFB, iv).encrypt(padding(mensaje)))
-print(descifra_aes_ofb(encripta_aes_ofb(mensaje, llave, iv), llave))
-
-print('\n')
-
-# PRUEBA QUITA PADDING
-mensaje = b'\x01x00hola'
-print(quita_padding(mensaje))
