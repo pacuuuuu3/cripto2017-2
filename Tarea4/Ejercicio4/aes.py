@@ -80,7 +80,27 @@ def descifra_aes_cbc(mensaje, llave):
         anterior = bloque
         i += 16
     return quita_padding(mensaje_claro)
-         
+
+'''
+Cifra con AES en modo OFB 
+mensaje - El mensaje a cifrar
+llave - La llave con la cual cifrar
+iv - Vector de inicialización
+'''
+def encripta_aes_ofb(mensaje, llave, iv):
+    mensaje = padding(mensaje)
+    anterior = iv # Flujo a encriptar
+    i = 0 # Contador
+    cifrador = AES.new(llave, AES.MODE_ECB) # Instancia cifradora
+    criptotexto = b''
+    while i < len(mensaje):
+        cifrado = cifrador.encrypt(anterior) # Bloque cifrado
+        bloque = bxor(cifrado, mensaje[i:i+16]) # Bloque del criptotexto (se le hace xor al cifrado con el mensaje)
+        criptotexto += bloque
+        i += 16
+        anterior = cifrado
+    return iv + criptotexto
+
 #PRUEBAS        
 iv = os.urandom(16) # Vector de inicialización
 mensaje = b'hola'
@@ -88,8 +108,17 @@ llave = b'Sixteen byte key'
 print(padded(mensaje))
 print(padded(padding(mensaje)))
 print(quita_padding(padding(mensaje)))
-print(encripta_aes_cbc(mensaje,llave, iv)) 
+
+print("Prueba CBC")
+print(encripta_aes_cbc(mensaje,llave, iv))
 print(iv + AES.new(llave, AES.MODE_CBC, iv).encrypt(padding(mensaje)))
+
+# PRUEBA DE OFB
+print("Prueba OFB")
+print(encripta_aes_ofb(mensaje, llave, iv))
+print(iv + AES.new(llave, AES.MODE_OFB, iv).encrypt(padding(mensaje)))
+
+
 print(descifra_aes_cbc(encripta_aes_cbc(mensaje, llave, iv), llave))
 mensaje = b'\x01x00hola'
 print(quita_padding(mensaje))
