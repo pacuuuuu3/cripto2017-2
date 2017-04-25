@@ -135,7 +135,8 @@ try:
     archivo_clave = open(nombre_clave, 'rb') # Abrimos el archivo con la clave
 except:
     print(MENSAJE_ERROR)
-
+    sys.exit(-1)
+    
 mensaje = archivo_mensaje.read() # El mensaje a cifrar/descifrar
 archivo_mensaje.close()
 clave = archivo_clave.read() # Clave
@@ -149,7 +150,6 @@ if modo == 'c':
     elif modo_aes == 'ofb':
         escribir = encripta_aes_ofb(mensaje, clave, os.urandom(16))
     else:
-        escritura.close()
         print(MENSAJE_ERROR)
         sys.exit(-1)
         
@@ -160,11 +160,9 @@ elif modo == 'd':
     elif modo_aes == 'ofb':
         escribir = descifra_aes_ofb(mensaje, clave)
     else:
-        escritura.close()
         print(MENSAJE_ERROR)
         sys.exit(-1)
 else:
-    escritura.close()
     print(MENSAJE_ERROR)
     sys.exit(-1)
     
