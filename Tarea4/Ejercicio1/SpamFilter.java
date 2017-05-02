@@ -2,8 +2,6 @@
  * Implementación del filtro de Chon Hacker para mensajes spam
  *
  */
-
-
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.io.ByteArrayOutputStream;
@@ -16,20 +14,11 @@ public class SpamFilter implements Runnable{
     byte [] emoji_a; // emoji que se hashea
     byte [] emoji_b; // emoji que se concatena con cualquier cosa
     SecureRandom rand;
+    MessageGenerator mg;
+    MessageVerifier mv;
 
-    /*acciones para generar un mensaje*/
-    enum accion{
-	incrementa, // incrementa el valor del byte en el mensaje
-	mueve_der, // mueve el byte a la posición derecha del arreglo de bytes 
-	mueve_izq, // mueve el byte a la posición izquierda del arreglo de bytes
-	copia_der, // copia el valor del byte al byte a su derecha
-	copia_izq,  // copia el valor del byte al byte a su izquierda
-	cambia_izq, // intercambia el valor del byte con el de su izquierda
-	cambia_der // intercambia el valor del byte con el de su derecha
-    }
-    
     /**
-     * Constructor de la clase
+     * Constructor de la clase   
      */
     public SpamFilter(){
 	try{
@@ -40,6 +29,8 @@ public class SpamFilter implements Runnable{
 	emoji_a = new byte[] {(byte)0xF0, (byte)0x9F, (byte)0x98, (byte)0x82};
 	emoji_b = new byte[] {(byte)0xF0, (byte)0x9F, (byte)0x98, (byte)0x8E};
 	rand = new SecureRandom();
+	mg = new MessageGenerator();
+	mv = new MessageVerifier();
     }
 
     /**
@@ -53,8 +44,7 @@ public class SpamFilter implements Runnable{
 	emoji_a = a.clone();
 	emoji_b = b.clone();
     }
-
-
+    
     /**
      * Regresa la representación en hexadecimal de un arreglo de bytes
      */
@@ -74,133 +64,13 @@ public class SpamFilter implements Runnable{
 	} catch(IOException ioe){ioe.printStackTrace();}
 	return bos.toByteArray();
     }
-    /**
-     * Genera un mensaje aleatorio con longitud aleatoria
-     */
-    public byte[] nuevoMensaje(){
-	/* crea el arreglo de bytes que será el mensaje con una longitud aleatoria*/
-	byte [] msj =  new byte[60]; // 60 + 32 bytes = 512 bits
-	/* asigna valores aleatorios a cada byte del mensaje*/
-	//rand.nextBytes(msj);
-	//System.out.println(toHexadecimal(msj));
-	for (int i = 0; i < (msj.length*100); i++){
-	    accion act = elige_accion();
-	    switch(act){
-	    case incrementa:
-		//System.out.println("Incrementando el byte "+i%msj.length);
-		msj[i%msj.length] ^= (0x01 << i%8);
-		if(msj[i%msj.length] > 0)
-		    System.out.println(msj[i%msj.length]);
-		break;
-	    case mueve_der:
-		//System.out.println("Moviendo a la derecha el byte "+i);
-		mueve_der(msj, i%msj.length);
-		break;
-	    case mueve_izq:
-		//System.out.println("Moviendo a la izquierda el byte "+i);
-		mueve_izq(msj, i%msj.length);
-		break;
-	    case copia_der:
-		//System.out.println("Copiando a la derecha el byte "+i);
-		copia_der(msj, i%msj.length);
-		break;
-	    case copia_izq:
-		//System.out.println("Copiando a la izquierda el byte "+i);
-	    case cambia_der:
-		//System.out.println("Cambiando a la derecha el byte "+i);
-		cambia_der(msj, i%msj.length);
-		break;
-	    case cambia_izq:
-		//System.out.println("Cambiando a la izquierda el byte "+i);
-		cambia_izq(msj, i%msj.length);
-		break;
-	    }
-	}
-	//System.out.println(toHexadecimal(msj));
-	return msj;
-    }
 
-    /* 
-       mueve el valor de un byte de un arreglo en una posición dada al de su derecha,
-       luego, el valor en la posición dada se vuelve 0
-    */
-    private void mueve_der(byte[] bytes, int pos){
-	byte cero = 0x00;
-	if(pos >= (bytes.length-1))
-	    return;
-	bytes[pos+1] = bytes[pos];
-	bytes[pos] = cero;
-    }
-
-    /*Mueve a la izquierda*/
-    private void mueve_izq(byte[] bytes, int pos){
-	byte cero = 0x00;
-	if(pos <= 0)
-	    return;
-	bytes[pos-1] = bytes[pos];
-	bytes[pos] = cero;
-    }
-    
-    /*copia a la derecha*/
-    private void copia_der(byte[] bytes, int pos){
-	if (pos >= (bytes.length - 1))
-	    return;
-	bytes[pos+1] = bytes[pos];
-    }
-
-    /*copia a la izquierda*/
-    private void copia_izq(byte[] bytes, int pos){
-	if (pos <= 0)
-	    return;
-	bytes[pos-1] = bytes[pos];
-    }
-
-    private void swap(byte a, byte b){
-	byte tmp = a;
-	a = b;
-	b = tmp;
-    }
-
-    /*intercambia el byte con el de su derecha*/
-    private void cambia_der(byte[] bytes, int pos){
-	if (pos >= (bytes.length - 1))
-	    return;
-	swap(bytes[pos], bytes[pos+1]);
-    }
-
-    /*intercambia el byte con el de su izquierda*/
-    private void cambia_izq(byte[] bytes, int pos){
-	if (pos <= 0)
-	    return;
-	swap(bytes[pos], bytes[pos-1]);
-    }
-
-    /*elige una acción aleatoriamente*/
-    private accion elige_accion(){
-	int sel =  rand.nextInt(accion.values().length);
-	return accion.values()[sel];
-    }
-    
-    /**
-     * Verifica que el mensaje x generado cumpla con la igualdad
-     * SHA256(emoji_a || x) = emoji_b || algo
-     */
-    public boolean acepta(){
-	msj_x = nuevoMensaje();
-	//calcula el hash de la concatenación emoji_a || msj_x
-	digest.update(byteConcat(emoji_a,msj_x));
-	byte[] hash = digest.digest();       
-	//System.out.println(toHexadecimal(hash));
-	// solo nos interesa ver si el hash inicia con los mismos bytes que el emoji b
-	int counter = 0;
-	for (int i = 0; i < emoji_b.length; i++){
-	    // rechaza si hay algún byte distinto
-	    if(hash[i] != emoji_b[i])	       
-		return false;	 
-	    counter++;
-	}	
-	return true;
-	    
+    /*genera un tamaño para el mensaje que sea 60 mod 64 para no tener padding*/
+    private int randomSize(){
+	int size = 0;
+	while(size != 60%64)
+	    size = rand.nextInt();
+	return size;
     }
         
     /**
@@ -208,8 +78,19 @@ public class SpamFilter implements Runnable{
      */
     @Override
     public void run(){
-	while(!acepta()){} // crea nuevos mensajes aleatorios y los evalua
-	System.out.println("Mensaje encontrado!!"+toHexadecimal(msj_x));
+	byte [] mensaje;
+	byte [] hash;
+	int i = 0;
+	msj_x = new byte[rand.nextInt(20000)];
+	boolean ready = false;
+	// Corre mientras el verificador no acepte
+	while(!mv.getStatus()){
+	    System.out.println(toHexadecimal(msj_x));
+	    mensaje = byteConcat(emoji_a, mg.generaMensaje(msj_x, i, ready));
+	    mv.verificaMensaje(mensaje, emoji_b, ready);
+	    i++;
+	}
+	System.out.println("Mensaje encontrado!!: "+toHexadecimal(msj_x));
 	System.exit(0); // termina el programa después de encontrarla
     }
 
