@@ -1,0 +1,14 @@
+1. ¿Cómo encuentras una x para enviar un mensaje «legı́timo» a Chon Hacker?
+R = Generando secuencias de bytes desde 0 hasta el máximo posible y probando con ellas una por una. Eventualmente, obtendremos la x.
+2. ¿Es necesario que Chon cambie a y b regularmente o pueden quedarse fijos?
+Explica.
+R = Pueden quedarse fijos, ya que la a nunca puede obtenerse a partir de la b y el enemigo solo conoce la b. Si el enemigo quisiera falsificar un
+mensaje auténtico, tendría que conocer la a o la x, ninguna de ellas obtenibles a partir de la b, ya que sha256 no es un hash roto.
+3. Estima cuántas operaciones tiene que hacer alguien para enviar un mensaje.
+(Aplicar SHA256 cuenta como operación básica.)
+R = Consideremos "probar una cadena" como un número constante de operaciones. Efectivamente, esto consiste en concatenar, sacar el hash, comparar,
+e incrementar un contador. Luego entonces, lo importante aquí es cuántas cadenas hay que probar para obtener lo que queremos. Un emoji consiste de
+4 bytes. Es decir que lo que queremos es que los primeros 4 bytes estén definidos. Si consideramos sha256 como "uniforme", entonces hay
+2^32 posibilidades para los primeros 4 bytes. Como "en promedio", encontraremos la combinación que queremos en la mitad del camino,
+podríamos decir que nos tomará aproximadamente O(2^31) operaciones encontrar la cadena deseada. Como dije que más o menos son 4 operaciones por
+cadena, nos tomará más o menos 2^33 operaciones.
