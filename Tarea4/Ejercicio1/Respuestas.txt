@@ -12,3 +12,11 @@ e incrementar un contador. Luego entonces, lo importante aquí es cuántas caden
 2^32 posibilidades para los primeros 4 bytes. Como "en promedio", encontraremos la combinación que queremos en la mitad del camino,
 podríamos decir que nos tomará aproximadamente O(2^31) operaciones encontrar la cadena deseada. Como dije que más o menos son 4 operaciones por
 cadena, nos tomará más o menos 2^33 operaciones.
+4. 12465531483 operaciones fueron necesarias.
+3875596891 operaciones menos de mi estimación.
+≈ 2^31 operaciones menos
+La x es : "\xb9 \xc0 \x3a \x96"
+5. Sí seguiría funcionando si b son dos emojis EN TEORÍA pero ya serían demasiadas operaciones para ser práctico.
+Ahora sería 2^64 posibilidades por explorar, lo cuál ya es demasiado. Si a son dos emojis, no afectaría mucho, ya que de hecho se reduce el conjunto
+que debemos explorar. Lo malo es que entre más bits de a fijamos, menos podemos estar seguros de que habrá alguna combinación que funciones.
+Pero como sha es "uniforme", en teoría sí deberíamos poder encontrar la combinación correcta.
