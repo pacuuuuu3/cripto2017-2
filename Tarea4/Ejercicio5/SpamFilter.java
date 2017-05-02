@@ -2,6 +2,8 @@
  * Implementación del filtro de Chon Hacker para mensajes spam
  *
  */
+
+
 import java.security.MessageDigest;
 import java.util.Arrays;
 import java.io.ByteArrayOutputStream;
@@ -14,11 +16,9 @@ public class SpamFilter implements Runnable{
     byte [] emoji_a; // emoji que se hashea
     byte [] emoji_b; // emoji que se concatena con cualquier cosa
     SecureRandom rand;
-    MessageGenerator mg;
-    MessageVerifier mv;
 
     /**
-     * Constructor de la clase   
+     * Constructor de la clase
      */
     public SpamFilter(){
 	try{
@@ -29,8 +29,7 @@ public class SpamFilter implements Runnable{
 	emoji_a = new byte[] {(byte)0xF0, (byte)0x9F, (byte)0x98, (byte)0x82};
 	emoji_b = new byte[] {(byte)0xF0, (byte)0x9F, (byte)0x98, (byte)0x8E};
 	rand = new SecureRandom();
-	mg = new MessageGenerator();
-	mv = new MessageVerifier();
+	msj_x = new byte [rand.nextInt(256)];
     }
 
     /**
@@ -44,7 +43,8 @@ public class SpamFilter implements Runnable{
 	emoji_a = a.clone();
 	emoji_b = b.clone();
     }
-    
+
+
     /**
      * Regresa la representación en hexadecimal de un arreglo de bytes
      */
@@ -64,13 +64,35 @@ public class SpamFilter implements Runnable{
 	} catch(IOException ioe){ioe.printStackTrace();}
 	return bos.toByteArray();
     }
-
-    /*genera un tamaño para el mensaje que sea 60 mod 64 para no tener padding*/
-    private int randomSize(){
-	int size = 0;
-	while(size != 60%64)
-	    size = rand.nextInt();
-	return size;
+    /**
+     * Genera un mensaje basado en la iteración en la que está el programa
+     * @param byte [] msj - donde se almacenará el mensaje
+     * @param int it - iteración actual
+     */
+    public byte[] nuevoMensaje(byte [] msj, int it){
+	int x = msj.length - 1;
+	msj[x-(it%msj.length)]+=0x01; //avanza de derecha a izquierda
+	return msj;
+    }
+    
+    /**
+     * Verifica que el mensaje x generado cumpla con la igualdad
+     * SHA256(emoji_a || x) = emoji_b || algo
+     * @param int it - iteración actual
+     */
+    public boolean acepta(int it){
+	msj_x = nuevoMensaje(msj_x, it);
+	//calcula el hash de la concatenación emoji_a || msj_x
+	digest.update(byteConcat(emoji_a,msj_x));
+	byte[] hash = digest.digest();       
+	// solo nos interesa ver si el hash inicia con los mismos bytes que el emoji b
+	for (int i = 0; i < emoji_b.length; i++){
+	    // rechaza si hay algún byte distinto
+	    if(hash[i] != emoji_b[i])	       
+		return false;	 
+	}	
+	return true;
+	    
     }
         
     /**
@@ -78,19 +100,9 @@ public class SpamFilter implements Runnable{
      */
     @Override
     public void run(){
-	byte [] mensaje;
-	byte [] hash;
 	int i = 0;
-	msj_x = new byte[rand.nextInt(20000)];
-	boolean ready = false;
-	// Corre mientras el verificador no acepte
-	while(!mv.getStatus()){
-	    System.out.println(toHexadecimal(msj_x));
-	    mensaje = byteConcat(emoji_a, mg.generaMensaje(msj_x, i, ready));
-	    mv.verificaMensaje(mensaje, emoji_b, ready);
-	    i++;
-	}
-	System.out.println("Mensaje encontrado!!: "+toHexadecimal(msj_x));
+	while(!acepta(i)){i++;} // crea nuevos mensajes aleatorios y los evalua
+	System.out.println("Mensaje encontrado!!"+toHexadecimal(msj_x));
 	System.exit(0); // termina el programa después de encontrarla
     }
 
