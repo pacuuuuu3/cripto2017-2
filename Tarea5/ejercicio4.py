@@ -19,7 +19,6 @@ def kraitchik(n):
     while not gmpy2.is_square(b):
         a += 1
         b = a*a % n
-        print("kraitchick en: {0}".format(a))
     p = a + int(math.sqrt(b))
     print("Uno de los factores primos de n es: {0}".format(p))
     print("El cofactor es: {0}".format(int(n/p)))
