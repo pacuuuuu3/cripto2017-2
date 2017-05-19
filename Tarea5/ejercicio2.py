@@ -12,6 +12,7 @@ def a(c,e,n):
             #break
         m += 1
 print("a) el mensaje claro es: {0}".format(a(10,5,35)))
+
 # sección b
 import math
 
