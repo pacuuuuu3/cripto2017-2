@@ -1,3 +1,10 @@
+"""""
+Ejecución en Sage:
+sage: load('ejercicio7.py')
+
+"""""
+
+
 # primo sobre el que se construye el campo finito donde estará la curva
 p = 0xffffffff00000001000000000000000000000000ffffffffffffffffffffffff
 # coeficientes de la curva
